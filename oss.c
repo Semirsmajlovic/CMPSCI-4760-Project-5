@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
     }
 
     // Clear logfile
-    FILE* file_ptr = fopen(LOG_FILE, "w");
+    FILE* file_ptr = fopen(LOGFILE, "w");
     fclose(file_ptr);
 
 
@@ -480,9 +480,9 @@ void output_stats() {
 }
 
 void save_to_log(char* text) {
-	FILE* file_log = fopen(LOG_FILE, "a+");
+	FILE* file_log = fopen(LOGFILE, "a+");
     log_line++;
-    if (log_line > LOG_FILE_MAX) {
+    if (log_line > MAX_LOGFILE) {
         errno = EINVAL;
         perror("Log file has exceeded max length.");
     }
