@@ -397,7 +397,7 @@ void output_stats() {
     printf("\n");
     printf("Our Statistics:\n\n");
     printf("Request Data: \n");
-    printf("Denied Requests: " stats.denied_requests " | Granted Requests: " stats.granted_requests " | Accumulative: " stats.granted_requests + stats.denied_requests);
+    printf("Denied Requests: ", stats.denied_requests ," | Granted Requests: ", stats.granted_requests ," | Accumulative: ", stats.granted_requests + stats.denied_requests);
     printf("--TERMINATIONS\n");
     printf("\t%-12s %d\n", "TOTAL:", stats.terminations);
     printf("--RELEASES\n");
