@@ -332,19 +332,20 @@ bool is_safe(int sim_pid, int requests[MAXIMUM_RES_INSTANCES]) {
     if (VERBOSE_MODE && ((stats.granted_requests % 20) == 0)) {
         int buf_size = size * MAXIMUM_RES_INSTANCES * 8;
         char buf[buf_size];
-        save_to_log("Need Matrix:");
+        save_to_log("---------------------------")
+        save_to_log("\nThe matrix that is needed:");
         matrix_to_string(buf, buf_size, &need[0][0], size, MAXIMUM_RES_INSTANCES);
         save_to_log(buf);
-        save_to_log("Maximum Matrix:");
+        save_to_log("\nOur maximum matrix that is used:");
         matrix_to_string(buf, buf_size, &maximum[0][0], size, MAXIMUM_RES_INSTANCES);
         save_to_log(buf);
-        save_to_log("Allocated Matrix:");
+        save_to_log("\nOur allocated matrix in execution:");
         matrix_to_string(buf, buf_size, &allocated[0][0], size, MAXIMUM_RES_INSTANCES);
         save_to_log(buf);
-        save_to_log("Available Array:");
+        save_to_log("\nOur available array that can be used:");
         matrix_to_string(buf, buf_size, available, 1, MAXIMUM_RES_INSTANCES);
         save_to_log(buf);
-        save_to_log("Request Array:");
+        save_to_log("\nOur requested array that is used:");
         matrix_to_string(buf, buf_size, requests, 1, MAXIMUM_RES_INSTANCES);
         save_to_log(buf);
     }
