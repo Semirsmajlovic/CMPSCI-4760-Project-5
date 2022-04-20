@@ -198,7 +198,7 @@ void try_spawn_child() {
             pid_t pid = fork();
             if (pid == 0) {
                 if (launch_child() < 0) {
-                    printf("Failed to launch process.\n");
+                    printf("Error: The process has failed to launch, please try again.\n");
                     exit(EXIT_FAILURE);
                 }
             } else {
@@ -222,7 +222,7 @@ void handle_processes() {
     strncpy(msg.msg_text, "run", MESSAGE_BUFFER_LENGTH);
     msg.msg_type = shared_mem->process_table[sim_pid].actual_pid;
     send_msg(&msg, PROC_MSG, false);
-    snprintf(log_buf, 100, "OSS sent run message to P%d at %ld:%ld", sim_pid, shared_mem->sys_clock.seconds, shared_mem->sys_clock.nanoseconds);
+    snprintf(log_buf, 100, "Our master has sent running messages to P%d at: %ld:%ld", sim_pid, shared_mem->sys_clock.seconds, shared_mem->sys_clock.nanoseconds);
     save_to_log(log_buf);
     add_time(&shared_mem->sys_clock, 0, rand() % 10000);
     strncpy(msg.msg_text, "", MESSAGE_BUFFER_LENGTH);
@@ -231,7 +231,7 @@ void handle_processes() {
     add_time(&shared_mem->sys_clock, 0, rand() % 10000);
     char* cmd = strtok(msg.msg_text, " ");
     if (strncmp(cmd, "request", MESSAGE_BUFFER_LENGTH) == 0) {
-        snprintf(log_buf, 100, "OSS recieved request from P%d for some resources at %ld:%ld", sim_pid, shared_mem->sys_clock.seconds, shared_mem->sys_clock.nanoseconds);
+        snprintf(log_buf, 100, "Our master has recieved the request from P%d for related resources at: %ld:%ld", sim_pid, shared_mem->sys_clock.seconds, shared_mem->sys_clock.nanoseconds);
         save_to_log(log_buf);
         int resources[MAXIMUM_RES_INSTANCES];
         for (int i = 0; i < MAXIMUM_RES_INSTANCES; i++) {
@@ -243,14 +243,14 @@ void handle_processes() {
         }
         add_time(&shared_mem->sys_clock, 0, rand() % 10000);
         if (is_safe(sim_pid, resources)) {
-            snprintf(log_buf, 100, "\tSafe state, granting request");
+            snprintf(log_buf, 100, "Success: The state has been declared safe, the request has been granted.");
             save_to_log(log_buf);
             strncpy(msg.msg_text, "acquired", MESSAGE_BUFFER_LENGTH);
             msg.msg_type = shared_mem->process_table[sim_pid].actual_pid;
             send_msg(&msg, PROC_MSG, false);
             stats.granted_requests++;
         } else {
-            snprintf(log_buf, 100, "\tUnsafe state, denying request");
+            snprintf(log_buf, 100, "Error: The state has been declared unsafe, the request has been denied.");
             save_to_log(log_buf);
             strncpy(msg.msg_text, "denied", MESSAGE_BUFFER_LENGTH);
             msg.msg_type = shared_mem->process_table[sim_pid].actual_pid;
@@ -258,12 +258,12 @@ void handle_processes() {
             stats.denied_requests++;
         }
     } else if (strncmp(cmd, "release", MESSAGE_BUFFER_LENGTH) == 0) {
-        snprintf(log_buf, 100, "OSS releasing resources for P%d at %ld:%ld", sim_pid, shared_mem->sys_clock.seconds, shared_mem->sys_clock.nanoseconds);
+        snprintf(log_buf, 100, "Our master is now releasing the resources for P%d at %ld:%ld", sim_pid, shared_mem->sys_clock.seconds, shared_mem->sys_clock.nanoseconds);
         save_to_log(log_buf);
         int num_res = 0;
         for (int i = 0; i < MAXIMUM_RES_INSTANCES; i++) {
             if (shared_mem->process_table[sim_pid].allow_res[i] > 0) {
-                snprintf(log_buf, 100, "\tReleasing resource %d with %d instances", i, shared_mem->process_table[sim_pid].allow_res[i]);
+                snprintf(log_buf, 100, "Stopped: We are now releasing our resource %d with %d instances.", i, shared_mem->process_table[sim_pid].allow_res[i]);
                 save_to_log(log_buf);
                 shared_mem->process_table[sim_pid].allow_res[i] = 0;
                 num_res++;
@@ -272,13 +272,13 @@ void handle_processes() {
         }
         stats.releases++;
         if (num_res <= 0) {
-            save_to_log("\tNo resources to release");
+            save_to_log("Error: There are no present resources to be released.");
         }
     } else if (strncmp(cmd, "terminate", MESSAGE_BUFFER_LENGTH) == 0) {
         int num_res = 0;
         for (int i = 0; i < MAXIMUM_RES_INSTANCES; i++) {
             if (shared_mem->process_table[sim_pid].allow_res[i] > 0) {
-                snprintf(log_buf, 100, "\tReleasing resource %d with %d instances", i, shared_mem->process_table[sim_pid].allow_res[i]);
+                snprintf(log_buf, 100, "Stopped: We are now releasing our resource %d with %d instances.", i, shared_mem->process_table[sim_pid].allow_res[i]);
                 save_to_log(log_buf);
                 shared_mem->process_table[sim_pid].max_res[i] = 0;
                 shared_mem->process_table[sim_pid].allow_res[i] = 0;
@@ -288,7 +288,7 @@ void handle_processes() {
         }
         stats.terminations++;
         if (num_res <= 0) {
-            save_to_log("\tNo resources to release");
+            save_to_log("Error: There are no present resources to be released.");
         }
         add_time(&shared_mem->sys_clock, 0, rand() % 100000);
         sim_pid = queue_pop(&proc_queue);
@@ -302,7 +302,7 @@ void handle_processes() {
 // Define our is safe boolean
 bool is_safe(int sim_pid, int requests[MAXIMUM_RES_INSTANCES]) {
     char log_buf[100];
-    snprintf(log_buf, 100, "OSS running deadlock detection at %ld:%ld", shared_mem->sys_clock.seconds, shared_mem->sys_clock.nanoseconds);
+    snprintf(log_buf, 100, "Our master is running the deadlock detection at %ld:%ld", shared_mem->sys_clock.seconds, shared_mem->sys_clock.nanoseconds);
     add_time(&shared_mem->sys_clock, 0, rand() % 1000000);
     save_to_log(log_buf);
     memcpy(&copy_queue, &proc_queue, sizeof(struct Queue));
