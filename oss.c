@@ -37,67 +37,61 @@ struct Statistics {
     unsigned int terminations;
     unsigned int releases;
 };
-
 static struct Statistics stats;
 
+// Include our voids
 void help();
 void signal_handler(int signum);
 void initialize();
-int launch_child();
 void try_spawn_child();
+
+// Define integer and bool conditional
+int launch_child();
 bool is_safe(int sim_pid, int resources[MAXIMUM_RES_INSTANCES]);
+
+// Include more voids
 void handle_processes();
 void remove_child(pid_t pid);
 void matrix_to_string(char* buffer, size_t buffer_size, int* matrix, int rows, int cols);
 void output_stats();
 void save_to_log(char* text);
 
+// Main function
 int main(int argc, char** argv) {
     int option;
     exe_name = argv[0];
 
-    // Process arguments
+    // Loop through our arguments
     while ((option = getopt(argc, argv, "h")) != -1) {
         switch (option) {
             case 'h':
                 help();
                 exit(EXIT_SUCCESS);
             case '?':
-                // Getopt handles error messages
                 exit(EXIT_FAILURE);
         }
     }
 
-    // Clear logfile
+    // Remove and erase our logfile.
     FILE* file_ptr = fopen(DEFAULT_FILE, "w");
     fclose(file_ptr);
 
-
-    // Initialize
+    // Call our initialization
     initialize();
 
-    // Keep track of the last time on the sys clock when we run a process
+    // Keep track of our processes
     last_run.nanoseconds = 0;
     last_run.seconds = 0;
 
-    // Main OSS loop. We handle scheduling processes here.
+    // Our main while loop in our function
     while (true) {
-        // Simulate some passed time for this loop (1 second and [0, 1000] nanoseconds)
         add_time(&(shared_mem->sys_clock), 1, rand() % 1000);
-        // try to spawn a new child if enough time has passed
         try_spawn_child();
-
-        // Handle process requests 
         handle_processes();
-
-        // See if any child processes have terminated
         pid_t pid = waitpid(-1, NULL, WNOHANG);
 		if (pid > 0) {
-            // Clear up this process for future use
             remove_child(pid);
 		}
-
-        // If we've run all the processes we need and have no more children we can exit
         if (total_procs > MAXIMUM_RUNNING_PROCS && queue_is_empty(&proc_queue)) {
             break;
         } 
@@ -107,11 +101,12 @@ int main(int argc, char** argv) {
     exit(EXIT_SUCCESS);
 }
 
+// Define our help method
 void help() {
-    printf("Operating System Simulator usage\n");
+    printf("\nResource Management Usage:\n");
 	printf("\n");
-	printf("[-h]\tShow this help dialogue.\n");
-	printf("\n");
+	printf("Run './oss' and the execution will begin.\n");
+	printf("The output will be written to 'logfile.log'.\n");
 }
 
 void signal_handler(int signum) {
