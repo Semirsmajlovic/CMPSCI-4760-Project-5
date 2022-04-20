@@ -20,10 +20,10 @@ void help_instructions() {
 
 void initialize_child() {
     srand((int)time(NULL) + getpid());
-    init_oss(false);
+    initialize_oss_action(false);
     endtime.nanoseconds = (rand() % 100000000) + 1000;
     endtime.seconds = (rand() % 5) + 1;
-    add_time(&endtime, shared_mem->sys_clock.seconds, shared_mem->sys_clock.nanoseconds);
+    increase_time_action(&endtime, shared_mem->sys_clock.seconds, shared_mem->sys_clock.nanoseconds);
 }
 
 int main(int argc, char** argv) {
@@ -49,19 +49,19 @@ int main(int argc, char** argv) {
     while (true) {
         strncpy(msg.msg_text, "", MESSAGE_BUFFER_LENGTH);
         msg.msg_type = getpid();
-        recieve_msg(&msg, PROC_MSG, true);
+        received_message_response(&msg, PROC_MSG, true);
         if (shared_mem->sys_clock.seconds > endtime.seconds && shared_mem->sys_clock.nanoseconds > endtime.nanoseconds) {
             can_terminate = true;
         }
         if (can_terminate) {
             strncpy(msg.msg_text, "terminate", MESSAGE_BUFFER_LENGTH);
             msg.msg_type = getpid();
-            send_msg(&msg, OSS_MSG, false);
+            send_message_delivery(&msg, OSS_MSG, false);
             exit(sim_pid);
         } else if ((rand() % 10 > 5) && has_resources) {
             strncpy(msg.msg_text, "release", MESSAGE_BUFFER_LENGTH);
             msg.msg_type = getpid();
-            send_msg(&msg, OSS_MSG, false);
+            send_message_delivery(&msg, OSS_MSG, false);
             has_resources = false;
         } else {
             snprintf(msg.msg_text, MESSAGE_BUFFER_LENGTH, "request");
@@ -72,8 +72,8 @@ int main(int argc, char** argv) {
                 strncat(msg.msg_text, resource_requested, MESSAGE_BUFFER_LENGTH - strlen(msg.msg_text));
             }
             msg.msg_type = getpid();
-            send_msg(&msg, OSS_MSG, false);
-            recieve_msg(&msg, PROC_MSG, true);
+            send_message_delivery(&msg, OSS_MSG, false);
+            received_message_response(&msg, PROC_MSG, true);
             if (strncmp(msg.msg_text, "acquired", MESSAGE_BUFFER_LENGTH) == 0) {
                 has_resources = true;
             }
