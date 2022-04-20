@@ -85,7 +85,7 @@ int main(int argc, char** argv) {
 
     // Our main while loop in our function
     while (true) {
-        add_time(&(shared_mem->sys_clock), 1, rand() % 1000);
+        increase_time_action(&(shared_mem->sys_clock), 1, rand() % 1000);
         child_process_attempt();
         handle_processes();
         pid_t pid = waitpid(-1, NULL, WNOHANG);
@@ -97,7 +97,7 @@ int main(int argc, char** argv) {
         } 
     }
     output_stats();
-    dest_oss();
+    destroy_oss_action();
     exit(EXIT_SUCCESS);
 }
 
@@ -130,7 +130,7 @@ void signal_handler(int signum) {
         }
     }
     output_stats();
-    dest_oss();
+    destroy_oss_action();
 
     // Trigger our alarms with exits
     if (signum == SIGINT) {
@@ -144,8 +144,8 @@ void signal_handler(int signum) {
 // Define our initialization
 void initialize() {
     srand((int)time(NULL) + getpid());
-    init_oss(true);
-    queue_init(&proc_queue);
+    initialize_oss_action(true);
+    queue_initializer(&proc_queue);
     for (int i = 0; i < MAXIMUM_PROCESSES; i++) {
         children[i] = 0;
     }
@@ -204,12 +204,12 @@ void child_process_attempt() {
             } else {
                 children[sim_pid] = pid;
                 num_children++;
-                queue_insert(&proc_queue, sim_pid);
+                queue_add_action(&proc_queue, sim_pid);
                 shared_mem->process_table[sim_pid].actual_pid = pid;
                 total_procs++;
             }
-            add_time(&shared_mem->sys_clock, 0, rand() % 100000);
-            add_time(&last_run, shared_mem->sys_clock.seconds, shared_mem->sys_clock.nanoseconds);
+            increase_time_action(&shared_mem->sys_clock, 0, rand() % 100000);
+            increase_time_action(&last_run, shared_mem->sys_clock.seconds, shared_mem->sys_clock.nanoseconds);
         }
     }
 }
@@ -224,11 +224,11 @@ void handle_processes() {
     send_msg(&msg, PROC_MSG, false);
     snprintf(log_buf, 100, "Our master has sent running messages to P%d at: %ld:%ld", sim_pid, shared_mem->sys_clock.seconds, shared_mem->sys_clock.nanoseconds);
     logfile_save(log_buf);
-    add_time(&shared_mem->sys_clock, 0, rand() % 10000);
+    increase_time_action(&shared_mem->sys_clock, 0, rand() % 10000);
     strncpy(msg.msg_text, "", MESSAGE_BUFFER_LENGTH);
     msg.msg_type = shared_mem->process_table[sim_pid].actual_pid;
     recieve_msg(&msg, OSS_MSG, true);
-    add_time(&shared_mem->sys_clock, 0, rand() % 10000);
+    increase_time_action(&shared_mem->sys_clock, 0, rand() % 10000);
     char* cmd = strtok(msg.msg_text, " ");
     if (strncmp(cmd, "request", MESSAGE_BUFFER_LENGTH) == 0) {
         snprintf(log_buf, 100, "Our master has recieved the request from P%d for related resources at: %ld:%ld", sim_pid, shared_mem->sys_clock.seconds, shared_mem->sys_clock.nanoseconds);
@@ -241,7 +241,7 @@ void handle_processes() {
         for (int i = 0; i < MAXIMUM_RES_INSTANCES; i++) {
             shared_mem->process_table->allow_res[i] = resources[i];
         }
-        add_time(&shared_mem->sys_clock, 0, rand() % 10000);
+        increase_time_action(&shared_mem->sys_clock, 0, rand() % 10000);
         if (safety_choice(sim_pid, resources)) {
             snprintf(log_buf, 100, "Success: The state has been declared safe, the request has been granted.");
             logfile_save(log_buf);
@@ -267,7 +267,7 @@ void handle_processes() {
                 logfile_save(log_buf);
                 shared_mem->process_table[sim_pid].allow_res[i] = 0;
                 num_res++;
-                add_time(&shared_mem->sys_clock, 0, rand() % 100);
+                increase_time_action(&shared_mem->sys_clock, 0, rand() % 100);
             }
         }
         stats.releases++;
@@ -283,27 +283,27 @@ void handle_processes() {
                 shared_mem->process_table[sim_pid].max_res[i] = 0;
                 shared_mem->process_table[sim_pid].allow_res[i] = 0;
                 num_res++;
-                add_time(&shared_mem->sys_clock, 0, rand() % 100);
+                increase_time_action(&shared_mem->sys_clock, 0, rand() % 100);
             }
         }
         stats.terminations++;
         if (num_res <= 0) {
             logfile_save("Error: There are no present resources to be released.");
         }
-        add_time(&shared_mem->sys_clock, 0, rand() % 100000);
+        increase_time_action(&shared_mem->sys_clock, 0, rand() % 100000);
         sim_pid = queue_pop(&proc_queue);
         child_process_remover(shared_mem->process_table[sim_pid].actual_pid);
         return;
     }
     queue_pop(&proc_queue);
-    queue_insert(&proc_queue, sim_pid);
-    add_time(&shared_mem->sys_clock, 0, rand() % 100000);
+    queue_add_action(&proc_queue, sim_pid);
+    increase_time_action(&shared_mem->sys_clock, 0, rand() % 100000);
 }
 // Define our safety boolean
 bool safety_choice(int sim_pid, int requests[MAXIMUM_RES_INSTANCES]) {
     char log_buf[100];
     snprintf(log_buf, 100, "Our master is running the deadlock detection at %ld:%ld", shared_mem->sys_clock.seconds, shared_mem->sys_clock.nanoseconds);
-    add_time(&shared_mem->sys_clock, 0, rand() % 1000000);
+    increase_time_action(&shared_mem->sys_clock, 0, rand() % 1000000);
     logfile_save(log_buf);
     memcpy(&copy_queue, &proc_queue, sizeof(struct Queue));
     int size = copy_queue.size;
