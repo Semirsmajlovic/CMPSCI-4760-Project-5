@@ -5,21 +5,21 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define MAX_ELEMENTS 100
+#define MAXIMUM_ELEMENTS 100
 
 struct Queue {
     int front_ind;
     int rear_ind;
-    int elements[MAX_ELEMENTS];
+    int elements[MAXIMUM_ELEMENTS];
     size_t size;
 };
 
-void queue_init(struct Queue* queue);
-int queue_pop(struct Queue* queue);
-int queue_peek(struct Queue* queue);
-void queue_insert(struct Queue* queue, int element);
-bool queue_is_full(struct Queue* queue);
-bool queue_is_empty(struct Queue* queue);
-void queue_print(struct Queue* queue);
+void queue_initializer(struct Queue* queue);
+int queue_removal_action(struct Queue* queue);
+int queue_lookin_action(struct Queue* queue);
+void queue_add_action(struct Queue* queue, int element);
+bool queue_maximized_action(struct Queue* queue);
+bool queue_minimum_action(struct Queue* queue);
+void queue_output_action(struct Queue* queue);
 
 #endif

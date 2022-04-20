@@ -42,12 +42,12 @@ struct oss_shm {
     struct res_descr descriptors[MAXIMUM_RES_INSTANCES];
 };
 
-void dest_oss();
-void init_oss(bool create);
-void add_time(struct time_clock* Time, unsigned long seconds, unsigned long nanoseconds);
-void sub_time(struct time_clock* Time, unsigned long seconds, unsigned long nanoseconds);
-void recieve_msg(struct message* msg, int msg_queue, bool wait);
-void send_msg(struct message* msg, int msg_queue, bool wait);
+void destroy_oss_action();
+void initialize_oss_action(bool create);
+void increase_time_action(struct time_clock* Time, unsigned long seconds, unsigned long nanoseconds);
+void subtract_time_action(struct time_clock* Time, unsigned long seconds, unsigned long nanoseconds);
+void received_message_response(struct message* msg, int msg_queue, bool wait);
+void send_message_delivery(struct message* msg, int msg_queue, bool wait);
 
 
 #endif

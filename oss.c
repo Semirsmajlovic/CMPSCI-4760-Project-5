@@ -40,21 +40,21 @@ struct Statistics {
 static struct Statistics stats;
 
 // Include our voids
-void help();
+void help_instructions();
 void signal_handler(int signum);
 void initialize();
-void try_spawn_child();
+void child_process_attempt();
 
 // Define integer and bool conditional
-int launch_child();
-bool is_safe(int sim_pid, int resources[MAXIMUM_RES_INSTANCES]);
+int child_process_launcher();
+bool safety_choice(int sim_pid, int resources[MAXIMUM_RES_INSTANCES]);
 
 // Include more voids
 void handle_processes();
-void remove_child(pid_t pid);
-void matrix_to_string(char* buffer, size_t buffer_size, int* matrix, int rows, int cols);
+void child_process_remover(pid_t pid);
+void convert_matrix_to_string_output(char* buffer, size_t buffer_size, int* matrix, int rows, int cols);
 void output_stats();
-void save_to_log(char* text);
+void logfile_save(char* text);
 
 // Main function
 int main(int argc, char** argv) {
@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
     while ((option = getopt(argc, argv, "h")) != -1) {
         switch (option) {
             case 'h':
-                help();
+                help_instructions();
                 exit(EXIT_SUCCESS);
             case '?':
                 exit(EXIT_FAILURE);
@@ -86,11 +86,11 @@ int main(int argc, char** argv) {
     // Our main while loop in our function
     while (true) {
         add_time(&(shared_mem->sys_clock), 1, rand() % 1000);
-        try_spawn_child();
+        child_process_attempt();
         handle_processes();
         pid_t pid = waitpid(-1, NULL, WNOHANG);
 		if (pid > 0) {
-            remove_child(pid);
+            child_process_remover(pid);
 		}
         if (total_procs > MAXIMUM_RUNNING_PROCS && queue_is_empty(&proc_queue)) {
             break;
@@ -101,8 +101,8 @@ int main(int argc, char** argv) {
     exit(EXIT_SUCCESS);
 }
 
-// Define our help method
-void help() {
+// Define our help_instructions method
+void help_instructions() {
     printf("\nResource Management Usage:\n");
 	printf("Run './oss' and the execution will begin.\n");
 	printf("The output will be written to 'logfile.log'.\n\n");
@@ -159,14 +159,14 @@ void initialize() {
 }
 
 // Define our launch child variable
-int launch_child() {
+int child_process_launcher() {
     char* program = "./user_proc";
     return execl(program, program, NULL);
 }
 
 
-// Define our remove_child method
-void remove_child(pid_t pid) {
+// Define our child_process_remover method
+void child_process_remover(pid_t pid) {
     for (int i = 0; i < num_children; i++) {
 		if (children[i] == pid) {
 			children[i] = 0;
@@ -176,8 +176,8 @@ void remove_child(pid_t pid) {
 	}
 }
 
-// Define our spawn child method
-void try_spawn_child() {
+// Define our child_process_attempt method
+void child_process_attempt() {
     if (total_procs > MAXIMUM_RUNNING_PROCS) {
         return;
     }
@@ -197,7 +197,7 @@ void try_spawn_child() {
             }
             pid_t pid = fork();
             if (pid == 0) {
-                if (launch_child() < 0) {
+                if (child_process_launcher() < 0) {
                     printf("Error: The process has failed to launch, please try again.\n");
                     exit(EXIT_FAILURE);
                 }
@@ -223,7 +223,7 @@ void handle_processes() {
     msg.msg_type = shared_mem->process_table[sim_pid].actual_pid;
     send_msg(&msg, PROC_MSG, false);
     snprintf(log_buf, 100, "Our master has sent running messages to P%d at: %ld:%ld", sim_pid, shared_mem->sys_clock.seconds, shared_mem->sys_clock.nanoseconds);
-    save_to_log(log_buf);
+    logfile_save(log_buf);
     add_time(&shared_mem->sys_clock, 0, rand() % 10000);
     strncpy(msg.msg_text, "", MESSAGE_BUFFER_LENGTH);
     msg.msg_type = shared_mem->process_table[sim_pid].actual_pid;
@@ -232,7 +232,7 @@ void handle_processes() {
     char* cmd = strtok(msg.msg_text, " ");
     if (strncmp(cmd, "request", MESSAGE_BUFFER_LENGTH) == 0) {
         snprintf(log_buf, 100, "Our master has recieved the request from P%d for related resources at: %ld:%ld", sim_pid, shared_mem->sys_clock.seconds, shared_mem->sys_clock.nanoseconds);
-        save_to_log(log_buf);
+        logfile_save(log_buf);
         int resources[MAXIMUM_RES_INSTANCES];
         for (int i = 0; i < MAXIMUM_RES_INSTANCES; i++) {
             cmd = strtok(NULL, " ");
@@ -242,16 +242,16 @@ void handle_processes() {
             shared_mem->process_table->allow_res[i] = resources[i];
         }
         add_time(&shared_mem->sys_clock, 0, rand() % 10000);
-        if (is_safe(sim_pid, resources)) {
+        if (safety_choice(sim_pid, resources)) {
             snprintf(log_buf, 100, "Success: The state has been declared safe, the request has been granted.");
-            save_to_log(log_buf);
+            logfile_save(log_buf);
             strncpy(msg.msg_text, "acquired", MESSAGE_BUFFER_LENGTH);
             msg.msg_type = shared_mem->process_table[sim_pid].actual_pid;
             send_msg(&msg, PROC_MSG, false);
             stats.granted_requests++;
         } else {
             snprintf(log_buf, 100, "Error: The state has been declared unsafe, the request has been denied.");
-            save_to_log(log_buf);
+            logfile_save(log_buf);
             strncpy(msg.msg_text, "denied", MESSAGE_BUFFER_LENGTH);
             msg.msg_type = shared_mem->process_table[sim_pid].actual_pid;
             send_msg(&msg, PROC_MSG, false);
@@ -259,12 +259,12 @@ void handle_processes() {
         }
     } else if (strncmp(cmd, "release", MESSAGE_BUFFER_LENGTH) == 0) {
         snprintf(log_buf, 100, "Our master is now releasing the resources for P%d at %ld:%ld", sim_pid, shared_mem->sys_clock.seconds, shared_mem->sys_clock.nanoseconds);
-        save_to_log(log_buf);
+        logfile_save(log_buf);
         int num_res = 0;
         for (int i = 0; i < MAXIMUM_RES_INSTANCES; i++) {
             if (shared_mem->process_table[sim_pid].allow_res[i] > 0) {
                 snprintf(log_buf, 100, "Stopped: We are now releasing our resource %d with %d instances.", i, shared_mem->process_table[sim_pid].allow_res[i]);
-                save_to_log(log_buf);
+                logfile_save(log_buf);
                 shared_mem->process_table[sim_pid].allow_res[i] = 0;
                 num_res++;
                 add_time(&shared_mem->sys_clock, 0, rand() % 100);
@@ -272,14 +272,14 @@ void handle_processes() {
         }
         stats.releases++;
         if (num_res <= 0) {
-            save_to_log("Error: There are no present resources to be released.");
+            logfile_save("Error: There are no present resources to be released.");
         }
     } else if (strncmp(cmd, "terminate", MESSAGE_BUFFER_LENGTH) == 0) {
         int num_res = 0;
         for (int i = 0; i < MAXIMUM_RES_INSTANCES; i++) {
             if (shared_mem->process_table[sim_pid].allow_res[i] > 0) {
                 snprintf(log_buf, 100, "Stopped: We are now releasing our resource %d with %d instances.", i, shared_mem->process_table[sim_pid].allow_res[i]);
-                save_to_log(log_buf);
+                logfile_save(log_buf);
                 shared_mem->process_table[sim_pid].max_res[i] = 0;
                 shared_mem->process_table[sim_pid].allow_res[i] = 0;
                 num_res++;
@@ -288,23 +288,23 @@ void handle_processes() {
         }
         stats.terminations++;
         if (num_res <= 0) {
-            save_to_log("Error: There are no present resources to be released.");
+            logfile_save("Error: There are no present resources to be released.");
         }
         add_time(&shared_mem->sys_clock, 0, rand() % 100000);
         sim_pid = queue_pop(&proc_queue);
-        remove_child(shared_mem->process_table[sim_pid].actual_pid);
+        child_process_remover(shared_mem->process_table[sim_pid].actual_pid);
         return;
     }
     queue_pop(&proc_queue);
     queue_insert(&proc_queue, sim_pid);
     add_time(&shared_mem->sys_clock, 0, rand() % 100000);
 }
-// Define our is safe boolean
-bool is_safe(int sim_pid, int requests[MAXIMUM_RES_INSTANCES]) {
+// Define our safety boolean
+bool safety_choice(int sim_pid, int requests[MAXIMUM_RES_INSTANCES]) {
     char log_buf[100];
     snprintf(log_buf, 100, "Our master is running the deadlock detection at %ld:%ld", shared_mem->sys_clock.seconds, shared_mem->sys_clock.nanoseconds);
     add_time(&shared_mem->sys_clock, 0, rand() % 1000000);
-    save_to_log(log_buf);
+    logfile_save(log_buf);
     memcpy(&copy_queue, &proc_queue, sizeof(struct Queue));
     int size = copy_queue.size;
     int curr_elm = queue_pop(&copy_queue);
@@ -332,21 +332,21 @@ bool is_safe(int sim_pid, int requests[MAXIMUM_RES_INSTANCES]) {
     if (VERBOSE_MODE && ((stats.granted_requests % 20) == 0)) {
         int buf_size = size * MAXIMUM_RES_INSTANCES * 8;
         char buf[buf_size];
-        save_to_log("\nThe matrix that is needed:");
-        matrix_to_string(buf, buf_size, &need[0][0], size, MAXIMUM_RES_INSTANCES);
-        save_to_log(buf);
-        save_to_log("\nOur maximum matrix that is used:");
-        matrix_to_string(buf, buf_size, &maximum[0][0], size, MAXIMUM_RES_INSTANCES);
-        save_to_log(buf);
-        save_to_log("\nOur allocated matrix in execution:");
-        matrix_to_string(buf, buf_size, &allocated[0][0], size, MAXIMUM_RES_INSTANCES);
-        save_to_log(buf);
-        save_to_log("\nOur available array that can be used:");
-        matrix_to_string(buf, buf_size, available, 1, MAXIMUM_RES_INSTANCES);
-        save_to_log(buf);
-        save_to_log("\nOur requested array that is used:");
-        matrix_to_string(buf, buf_size, requests, 1, MAXIMUM_RES_INSTANCES);
-        save_to_log(buf);
+        logfile_save("\nThe matrix that is needed:");
+        convert_matrix_to_string_output(buf, buf_size, &need[0][0], size, MAXIMUM_RES_INSTANCES);
+        logfile_save(buf);
+        logfile_save("\nOur maximum matrix that is used:");
+        convert_matrix_to_string_output(buf, buf_size, &maximum[0][0], size, MAXIMUM_RES_INSTANCES);
+        logfile_save(buf);
+        logfile_save("\nOur allocated matrix in execution:");
+        convert_matrix_to_string_output(buf, buf_size, &allocated[0][0], size, MAXIMUM_RES_INSTANCES);
+        logfile_save(buf);
+        logfile_save("\nOur available array that can be used:");
+        convert_matrix_to_string_output(buf, buf_size, available, 1, MAXIMUM_RES_INSTANCES);
+        logfile_save(buf);
+        logfile_save("\nOur requested array that is used:");
+        convert_matrix_to_string_output(buf, buf_size, requests, 1, MAXIMUM_RES_INSTANCES);
+        logfile_save(buf);
     }
     int index = 0;
     memcpy(&copy_queue, &proc_queue, sizeof(struct Queue));
@@ -372,7 +372,7 @@ bool is_safe(int sim_pid, int requests[MAXIMUM_RES_INSTANCES]) {
 }
 
 // Define our matrix to string conversion
-void matrix_to_string(char* dest, size_t buffer_size, int* matrix, int rows, int cols) {
+void convert_matrix_to_string_output(char* dest, size_t buffer_size, int* matrix, int rows, int cols) {
     strncpy(dest, "", buffer_size);
     char buffer[buffer_size];
     strncat(dest, "    ", buffer_size);
@@ -411,7 +411,7 @@ void output_stats() {
 }
 
 // Define our method to save to logfile.
-void save_to_log(char* text) {
+void logfile_save(char* text) {
 	FILE* file_log = fopen(DEFAULT_FILE, "a+");
     log_line++;
     if (log_line > MAXIMUM_LOGFILE_OUTPUT) {

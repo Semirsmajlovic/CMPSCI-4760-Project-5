@@ -10,7 +10,7 @@
 #define DEFAULT_FILE "logfile.log"
 #define VERBOSE_MODE true
 #define MAXIMUM_PROCESSES 18
-#define MAIN_SHM_FILE "shmOSS.shm"
+#define MAIN_SHM_FILE "oss_shm.shm"
 #define MESSAGE_BUFFER_LENGTH 2048
 #define MAXIMUM_RES_INSTANCES 20
 #define MAXIMUM_RUNNING_TIME 300
