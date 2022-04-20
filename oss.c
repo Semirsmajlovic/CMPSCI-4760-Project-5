@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
 		if (pid > 0) {
             child_process_remover(pid);
 		}
-        if (total_procs > MAXIMUM_RUNNING_PROCS && queue_is_empty(&proc_queue)) {
+        if (total_procs > MAXIMUM_RUNNING_PROCS && queue_minimum_action(&proc_queue)) {
             break;
         } 
     }
@@ -217,17 +217,17 @@ void child_process_attempt() {
 // Define our children process handler
 void handle_processes() {
     char log_buf[100];
-    int sim_pid = queue_peek(&proc_queue);
+    int sim_pid = queue_lookin_action(&proc_queue);
     if (sim_pid < 0) return;
     strncpy(msg.msg_text, "run", MESSAGE_BUFFER_LENGTH);
     msg.msg_type = shared_mem->process_table[sim_pid].actual_pid;
-    send_msg(&msg, PROC_MSG, false);
+    send_message_delivery(&msg, PROC_MSG, false);
     snprintf(log_buf, 100, "Our master has sent running messages to P%d at: %ld:%ld", sim_pid, shared_mem->sys_clock.seconds, shared_mem->sys_clock.nanoseconds);
     logfile_save(log_buf);
     increase_time_action(&shared_mem->sys_clock, 0, rand() % 10000);
     strncpy(msg.msg_text, "", MESSAGE_BUFFER_LENGTH);
     msg.msg_type = shared_mem->process_table[sim_pid].actual_pid;
-    recieve_msg(&msg, OSS_MSG, true);
+    received_message_response(&msg, OSS_MSG, true);
     increase_time_action(&shared_mem->sys_clock, 0, rand() % 10000);
     char* cmd = strtok(msg.msg_text, " ");
     if (strncmp(cmd, "request", MESSAGE_BUFFER_LENGTH) == 0) {
@@ -247,14 +247,14 @@ void handle_processes() {
             logfile_save(log_buf);
             strncpy(msg.msg_text, "acquired", MESSAGE_BUFFER_LENGTH);
             msg.msg_type = shared_mem->process_table[sim_pid].actual_pid;
-            send_msg(&msg, PROC_MSG, false);
+            send_message_delivery(&msg, PROC_MSG, false);
             stats.granted_requests++;
         } else {
             snprintf(log_buf, 100, "Error: The state has been declared unsafe, the request has been denied.");
             logfile_save(log_buf);
             strncpy(msg.msg_text, "denied", MESSAGE_BUFFER_LENGTH);
             msg.msg_type = shared_mem->process_table[sim_pid].actual_pid;
-            send_msg(&msg, PROC_MSG, false);
+            send_message_delivery(&msg, PROC_MSG, false);
             stats.denied_requests++;
         }
     } else if (strncmp(cmd, "release", MESSAGE_BUFFER_LENGTH) == 0) {
@@ -291,11 +291,11 @@ void handle_processes() {
             logfile_save("Error: There are no present resources to be released.");
         }
         increase_time_action(&shared_mem->sys_clock, 0, rand() % 100000);
-        sim_pid = queue_pop(&proc_queue);
+        sim_pid = queue_removal_action(&proc_queue);
         child_process_remover(shared_mem->process_table[sim_pid].actual_pid);
         return;
     }
-    queue_pop(&proc_queue);
+    queue_removal_action(&proc_queue);
     queue_add_action(&proc_queue, sim_pid);
     increase_time_action(&shared_mem->sys_clock, 0, rand() % 100000);
 }
@@ -307,7 +307,7 @@ bool safety_choice(int sim_pid, int requests[MAXIMUM_RES_INSTANCES]) {
     logfile_save(log_buf);
     memcpy(&copy_queue, &proc_queue, sizeof(struct Queue));
     int size = copy_queue.size;
-    int curr_elm = queue_pop(&copy_queue);
+    int curr_elm = queue_removal_action(&copy_queue);
     int maximum[size][MAXIMUM_RES_INSTANCES];
     int allocated[size][MAXIMUM_RES_INSTANCES];
     int need[size][MAXIMUM_RES_INSTANCES];
@@ -322,7 +322,7 @@ bool safety_choice(int sim_pid, int requests[MAXIMUM_RES_INSTANCES]) {
             maximum[i][j] = shared_mem->process_table[curr_elm].max_res[j];
             allocated[i][j] = shared_mem->process_table[curr_elm].allow_res[j];
         }
-        curr_elm = queue_pop(&copy_queue);
+        curr_elm = queue_removal_action(&copy_queue);
     }
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < MAXIMUM_RES_INSTANCES; j++) {
@@ -350,11 +350,11 @@ bool safety_choice(int sim_pid, int requests[MAXIMUM_RES_INSTANCES]) {
     }
     int index = 0;
     memcpy(&copy_queue, &proc_queue, sizeof(struct Queue));
-    curr_elm = queue_pop(&copy_queue);
-    while (!queue_is_empty(&copy_queue)) {
+    curr_elm = queue_removal_action(&copy_queue);
+    while (!queue_minimum_action(&copy_queue)) {
         if (curr_elm == sim_pid) break;
         index++;
-        curr_elm = queue_pop(&copy_queue);
+        curr_elm = queue_removal_action(&copy_queue);
     }
     for (int i = 0; i < MAXIMUM_RES_INSTANCES; i++) {
         if (need[index][i] < requests[i]) {
