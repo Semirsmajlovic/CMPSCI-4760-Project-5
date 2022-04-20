@@ -332,7 +332,6 @@ bool is_safe(int sim_pid, int requests[MAXIMUM_RES_INSTANCES]) {
     if (VERBOSE_MODE && ((stats.granted_requests % 20) == 0)) {
         int buf_size = size * MAXIMUM_RES_INSTANCES * 8;
         char buf[buf_size];
-        save_to_log("---------------------------")
         save_to_log("\nThe matrix that is needed:");
         matrix_to_string(buf, buf_size, &need[0][0], size, MAXIMUM_RES_INSTANCES);
         save_to_log(buf);
