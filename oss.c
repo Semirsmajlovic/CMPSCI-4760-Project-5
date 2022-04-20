@@ -396,11 +396,11 @@ void matrix_to_string(char* dest, size_t buffer_size, int* matrix, int rows, int
 void output_stats() {
     printf("\n");
     printf("Our Statistics:\n\n");
-    printf("Request Data: \n");
-    printf("Denied Requests:", stats.denied_requests);
-    printf("Granted Requests:", stats.granted_requests);
-    printf("Accumulative:", stats.granted_requests + stats.denied_requests);
-    printf("\n--TERMINATIONS\n");
+    printf("Request Data:\n");
+    printf("%d\n", "Denied Requests:", stats.denied_requests);
+    printf("%d\n", "GRANTED:", stats.granted_requests);
+    printf("%d\n", "TOTAL:", stats.granted_requests + stats.denied_requests);
+    printf("--TERMINATIONS\n");
     printf("\t%-12s %d\n", "TOTAL:", stats.terminations);
     printf("--RELEASES\n");
     printf("\t%-12s %d\n", "TOTAL:", stats.releases);
