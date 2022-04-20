@@ -15,9 +15,11 @@
 #define MAX_RES_INSTANCES 20
 #define MAX_RUNTIME 300 // 5m
 #define MAX_RUN_PROCS 40 // Max number of processes to run
-#define maxTimeBetweenNewProcsSecs 0
-#define minTimeBetweenNewProcsSecs 0
-#define minTimeBetweenNewProcsNS 1000000 // 1 ms
-#define maxTimeBetweenNewProcsNS 500000000 // 500 ms
+
+// Define our variables
+#define maximum_time_between_new_procs_in_seconds 0
+#define minimum_time_between_new_procs_in_seconds 0
+#define minimum_time_between_new_procs_in_ms 1000000
+#define maximum_time_between_new_procs_in_ms 500000000
 
 #endif

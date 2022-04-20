@@ -183,8 +183,8 @@ void try_spawn_child() {
     if (total_procs > MAX_RUN_PROCS) return;
     // Check if enough time has passed on simulated sys clock to spawn new child
     // Time needed is calculated randomly to give some random offset between processes
-    int seconds = (rand() % (maxTimeBetweenNewProcsSecs + 1)) + minTimeBetweenNewProcsSecs;
-    int nansecs = (rand() % (maxTimeBetweenNewProcsNS + 1)) + minTimeBetweenNewProcsNS;
+    int seconds = (rand() % (maximum_time_between_new_procs_in_seconds + 1)) + minimum_time_between_new_procs_in_seconds;
+    int nansecs = (rand() % (maximum_time_between_new_procs_in_ms + 1)) + minimum_time_between_new_procs_in_ms;
     if ((shared_mem->sys_clock.seconds - last_run.seconds > seconds) && 
     (shared_mem->sys_clock.nanoseconds - last_run.nanoseconds > nansecs)) {
         // Check process control block availablity
