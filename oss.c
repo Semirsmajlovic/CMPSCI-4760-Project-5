@@ -397,16 +397,16 @@ void output_stats() {
     printf("\n");
     printf("Our Statistics:\n\n");
     printf("Request Data:\n");
-    printf("%d\n", "Denied Requests:", stats.denied_requests);
-    printf("%d\n", "GRANTED:", stats.granted_requests);
-    printf("%d\n", "TOTAL:", stats.granted_requests + stats.denied_requests);
-    printf("--TERMINATIONS\n");
-    printf("\t%-12s %d\n", "TOTAL:", stats.terminations);
-    printf("--RELEASES\n");
-    printf("\t%-12s %d\n", "TOTAL:", stats.releases);
-    printf("--SIMULATED TIME\n");
-    printf("\t%-12s %ld\n", "SECONDS:", shared_mem->sys_clock.seconds);
-    printf("\t%-12s %ld\n", "NANOSECONDS:", shared_mem->sys_clock.nanoseconds);
+    printf("\t%-12s %d\n", "Denied Requests:", stats.denied_requests);
+    printf("\t%-12s %d\n", "Granted Requests:", stats.granted_requests);
+    printf("\t%-12s %d\n", "Accumulative Requests:", stats.granted_requests + stats.denied_requests);
+    printf("\nTermination Data:\n");
+    printf("\t%-12s %d\n", "Accumulative Terminations:", stats.terminations);
+    printf("\nReleases Data:\n");
+    printf("\t%-12s %d\n", "Accumulative Releases:", stats.releases);
+    printf("\nSimulated Times:\n");
+    printf("\t%-12s %ld\n", "In Seconds:", shared_mem->sys_clock.seconds);
+    printf("\t%-12s %ld\n", "In Nanoseconds:", shared_mem->sys_clock.nanoseconds);
     printf("\n");
 }
 
