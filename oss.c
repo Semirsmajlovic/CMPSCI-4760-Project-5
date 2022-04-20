@@ -1,3 +1,4 @@
+// Define our includes
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -8,29 +9,36 @@
 #include <wait.h>
 #include <string.h>
 
+// Define our imports
 #include "shared.h"
 #include "config.h"
 #include "queue.h"
 
+// Set our child pid
 static pid_t children[MAXIMUM_PROCESSES];
 static size_t num_children = 0;
+
+// Define our structs
 extern struct oss_shm* shared_mem;
 static struct Queue proc_queue;
 static struct Queue copy_queue;
 static struct message msg;
+
+// Define our static variables
 static char* exe_name;
 static int log_line = 0;
 static int total_procs = 0;
 static struct time_clock last_run;
 
-struct statistics {
+// Define statistics
+struct Statistics {
     unsigned int granted_requests;
     unsigned int denied_requests;
     unsigned int terminations;
     unsigned int releases;
 };
 
-static struct statistics stats;
+static struct Statistics stats;
 
 void help();
 void signal_handler(int signum);
@@ -482,7 +490,7 @@ void output_stats() {
 void save_to_log(char* text) {
 	FILE* file_log = fopen(DEFAULT_FILE, "a+");
     log_line++;
-    if (log_line > MAX_LOGFILE) {
+    if (log_line > MAXIMUM_LOGFILE_OUTPUT) {
         errno = EINVAL;
         perror("Log file has exceeded max length.");
     }

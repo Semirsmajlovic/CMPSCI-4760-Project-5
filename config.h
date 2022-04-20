@@ -6,15 +6,15 @@
 #include <stdbool.h>
 
 // Define our constants
-#define MAX_LOGFILE 100000
+#define MAXIMUM_LOGFILE_OUTPUT 100000
 #define DEFAULT_FILE "logfile.log"
 #define VERBOSE_MODE true
 #define MAXIMUM_PROCESSES 18
 #define MAIN_SHM_FILE "shmOSS.shm"
 #define MESSAGE_BUFFER_LENGTH 2048
 #define MAXIMUM_RES_INSTANCES 20
-#define MAXIMUM_RUNNING_TIME 300 // 5m
-#define MAXIMUM_RUNNING_PROCS 40 // Max number of processes to run
+#define MAXIMUM_RUNNING_TIME 300
+#define MAXIMUM_RUNNING_PROCS 40
 
 // Define our variables
 #define maximum_time_between_new_procs_in_seconds 0
