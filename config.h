@@ -7,14 +7,14 @@
 
 // Define our constants
 #define MAX_LOGFILE 100000
-#define LOGFILE "logfile.log"
+#define DEFAULT_FILE "logfile.log"
 #define VERBOSE_MODE true
-#define MAX_PROCESSES 18
-#define SHM_FILE "shmOSS.shm"
-#define MSG_BUFFER_LEN 2048
-#define MAX_RES_INSTANCES 20
-#define MAX_RUNTIME 300 // 5m
-#define MAX_RUN_PROCS 40 // Max number of processes to run
+#define MAXIMUM_PROCESSES 18
+#define MAIN_SHM_FILE "shmOSS.shm"
+#define MESSAGE_BUFFER_LENGTH 2048
+#define MAXIMUM_RES_INSTANCES 20
+#define MAXIMUM_RUNNING_TIME 300 // 5m
+#define MAXIMUM_RUNNING_PROCS 40 // Max number of processes to run
 
 // Define our variables
 #define maximum_time_between_new_procs_in_seconds 0

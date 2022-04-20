@@ -21,7 +21,7 @@ struct time_clock {
 
 struct message {
     long int msg_type;
-    char msg_text[MSG_BUFFER_LEN];
+    char msg_text[MESSAGE_BUFFER_LENGTH];
 };
 
 struct res_descr {
@@ -32,14 +32,14 @@ struct res_descr {
 struct process_ctrl_block {
     unsigned int sim_pid;
     pid_t actual_pid;
-    int max_res[MAX_RES_INSTANCES];
-    int allow_res[MAX_RES_INSTANCES];
+    int max_res[MAXIMUM_RES_INSTANCES];
+    int allow_res[MAXIMUM_RES_INSTANCES];
 };
 
 struct oss_shm {
     struct time_clock sys_clock;
-    struct process_ctrl_block process_table[MAX_PROCESSES];
-    struct res_descr descriptors[MAX_RES_INSTANCES];
+    struct process_ctrl_block process_table[MAXIMUM_PROCESSES];
+    struct res_descr descriptors[MAXIMUM_RES_INSTANCES];
 };
 
 void dest_oss();

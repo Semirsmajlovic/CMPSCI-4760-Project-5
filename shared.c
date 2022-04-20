@@ -21,7 +21,7 @@ int get_shm(int token) {
 	key_t key;
 
 	// Get numeric key of shared memory file
-	key = ftok(SHM_FILE, token);
+	key = ftok(MAIN_SHM_FILE, token);
 	if (key == -1) return -1;
 
 	// Get shared memory id from the key
@@ -32,7 +32,7 @@ int get_shm(int token) {
 int getsemaphores(int token, int sem_num) {
 	key_t key;
 	// Get numeric key of shared memory file
-	key = ftok(SHM_FILE, token);
+	key = ftok(MAIN_SHM_FILE, token);
 	if (key == -1) return -1;
 
 	// Get access to semaphore set with sem_num semaphores
@@ -80,8 +80,8 @@ void init_oss(bool create) {
     }
 
 	// Get message queue
-	key_t oss_msg_key = ftok(SHM_FILE, OSS_MSG);
-	key_t proc_msg_key = ftok(SHM_FILE, PROC_MSG);
+	key_t oss_msg_key = ftok(MAIN_SHM_FILE, OSS_MSG);
+	key_t proc_msg_key = ftok(MAIN_SHM_FILE, PROC_MSG);
 
 	if (oss_msg_key < 0 || proc_msg_key < 0) {
         perror("Could not get message queue(s) file");
@@ -109,7 +109,7 @@ void init_oss(bool create) {
 	shared_mem->sys_clock.nanoseconds = 0;
 
 	// Intialize resource descriptors
-	for (int i = 0; i < MAX_RES_INSTANCES; i++) {
+	for (int i = 0; i < MAXIMUM_RES_INSTANCES; i++) {
 		// random resource num between 1-10
 		shared_mem->descriptors[i].resource = (rand() % 10) + 1;
 		// 20% chance for resource to be shared
